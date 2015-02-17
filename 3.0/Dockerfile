@@ -26,7 +26,7 @@ RUN saslpasswd2 -d dummy \
 
 RUN cd /postfix-${POSTFIX_VERSION} \
 &&  make makefiles dynamicmaps=yes CCARGS="-DUSE_TLS -DHAS_PCRE $(pcre-config --cflags)" AUXLIBS="-lssl -lcrypto" AUXLIBS_PCRE="$(pcre-config --libs)" \
-&&  make install
+&&  make && postfix-install -non-interactive
 
 # RUN rm -rf /var/lib/apt/lists/*
 
