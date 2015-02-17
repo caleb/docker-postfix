@@ -9,24 +9,27 @@ ADD cyrus-sasl-${CYRUS_SASL_VERSION}.tar.gz /
 
 RUN apt-get update
 RUN apt-get install -y build-essential libdb-dev
-RUN apt-get install -y libssl-dev libpcre3-dev
+RUN apt-get install -y libssl-dev libpcre3-dev libicu-dev
 
 RUN useradd --system --no-create-home --no-user-group -g sasl sasl \
-&&  useradd --system --no-create-home --groups sasl postfix
+&&  useradd --system --no-create-home --groups sasl postfix \
+&&  groupadd --system postdrop
 
 RUN cd /cyrus-sasl-${CYRUS_SASL_VERSION} \
 &&  ./configure --prefix=/usr --sysconfdir=/etc --without-saslauthd \
 &&  make && make install
 
-# Run saslpasswd -d (which usually deletes a user) to create the /etc/sasldb2 database
-RUN saslpasswd2 -d dummy \
+# Create and delete a dummy user to create the /etc/sasldb2 database
+RUN echo "!" | saslpasswd2 -c dummy && saslpasswd2 -d dummy \
 &&  chown sasl:sasl /etc/sasldb2 \
 &&  chmod 660 /etc/sasldb2 \
 &&  mkdir -p /etc/sasl2
 
+ADD smtpd.conf /etc/sasl2/smtpd.conf
+
 RUN cd /postfix-${POSTFIX_VERSION} \
 &&  make makefiles dynamicmaps=yes CCARGS="-DUSE_TLS -DHAS_PCRE $(pcre-config --cflags)" AUXLIBS="-lssl -lcrypto" AUXLIBS_PCRE="$(pcre-config --libs)" \
-&&  make && ./postfix-install -non-interactive
+&&  make && make upgrade
 
 # RUN rm -rf /var/lib/apt/lists/*
 

@@ -1,12 +1,5 @@
 #!/bin/bash
 
-# Configure the smtpd sasl configuration
-cat > /etc/sasl2/smtpd.conf <<EOF
-pwcheck_method: auxprop
-auxprop_plugin: sasldb
-mech_list: PLAIN LOGIN CRAM-MD5 DIGEST-MD5 NTLM
-EOF
-
 # function print_help {
 # cat <<EOF
 #         Generic Postfix Setup Script
