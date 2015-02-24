@@ -1,34 +1,3 @@
-# Global Postfix configuration file. This file lists only a subset
-# of all parameters. For the syntax, and for a complete parameter
-# list, see the postconf(5) manual page (command: "man 5 postconf").
-#
-# For common configuration examples, see BASIC_CONFIGURATION_README
-# and STANDARD_CONFIGURATION_README. To find these documents, use
-# the command "postconf html_directory readme_directory", or go to
-# http://www.postfix.org/BASIC_CONFIGURATION_README.html etc.
-#
-# For best results, change no more than 2-3 parameters at a time,
-# and test if Postfix still works after every change.
-
-# COMPATIBILITY
-#
-# The compatibility_level determines what default settings Postfix
-# will use for main.cf and master.cf settings. These defaults will
-# change over time.
-#
-# To avoid breaking things, Postfix will use backwards-compatible
-# default settings and log where it uses those old backwards-compatible
-# default settings, until the system administrator has determined
-# if any backwards-compatible default settings need to be made
-# permanent in main.cf or master.cf.
-#
-# When this review is complete, update the compatibility_level setting
-# below as recommended in the RELEASE_NOTES file.
-#
-# The level below is what should be used with new (not upgrade) installs.
-#
-compatibility_level = 2
-
 # SOFT BOUNCE
 #
 # The soft_bounce parameter provides a limited safety net for
@@ -40,43 +9,8 @@ compatibility_level = 2
 #
 #soft_bounce = no
 
-# LOCAL PATHNAME INFORMATION
-#
-# The queue_directory specifies the location of the Postfix queue.
-# This is also the root directory of Postfix daemons that run chrooted.
-# See the files in examples/chroot-setup for setting up Postfix chroot
-# environments on different UNIX systems.
-#
-queue_directory = /var/spool/postfix
-
-# The command_directory parameter specifies the location of all
-# postXXX commands.
-#
-command_directory = /usr/sbin
-
-# The daemon_directory parameter specifies the location of all Postfix
-# daemon programs (i.e. programs listed in the master.cf file). This
-# directory must be owned by root.
-#
-daemon_directory = /usr/libexec/postfix
-
-# The data_directory parameter specifies the location of Postfix-writable
-# data files (caches, random numbers). This directory must be owned
-# by the mail_owner account (see below).
-#
-data_directory = /var/lib/postfix
-
 # QUEUE AND PROCESS OWNERSHIP
 #
-# The mail_owner parameter specifies the owner of the Postfix queue
-# and of most Postfix daemon processes.  Specify the name of a user
-# account THAT DOES NOT SHARE ITS USER OR GROUP ID WITH OTHER ACCOUNTS
-# AND THAT OWNS NO OTHER FILES OR PROCESSES ON THE SYSTEM.  In
-# particular, don't specify nobody or daemon. PLEASE USE A DEDICATED
-# USER.
-#
-mail_owner = postfix
-
 # The default_privs parameter specifies the default rights used by
 # the local delivery agent for delivery to external file or command.
 # These rights are used in the absence of a recipient user context.
@@ -91,15 +25,18 @@ mail_owner = postfix
 # from gethostname(). $myhostname is used as a default value for many
 # other configuration parameters.
 #
-#myhostname = host.domain.tld
-#myhostname = virtual.domain.tld
+{{#MYHOSTNAME}}
+myhostname = {{MYHOSTNAME}}
+{{/MYHOSTNAME}}
 
 # The mydomain parameter specifies the local internet domain name.
 # The default is to use $myhostname minus the first component.
 # $mydomain is used as a default value for many other configuration
 # parameters.
 #
-#mydomain = domain.tld
+{{#MYDOMAIN}}
+mydomain = {{MYDOMAIN}}
+{{/MYDOMAIN}}
 
 # SENDING MAIL
 # 
@@ -114,8 +51,9 @@ mail_owner = postfix
 # myorigin also specifies the default domain name that is appended
 # to recipient addresses that have no @domain part.
 #
-#myorigin = $myhostname
-#myorigin = $mydomain
+{{#MYORIGIN}}
+myorigin = {{MYORIGIN}}
+{{/MYORIGIN}}
 
 # RECEIVING MAIL
 
@@ -176,10 +114,9 @@ mail_owner = postfix
 #
 # See also below, section "REJECTING MAIL FOR UNKNOWN LOCAL USERS".
 #
-#mydestination = $myhostname, localhost.$mydomain, localhost
-#mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain
-#mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain,
-#	mail.$mydomain, www.$mydomain, ftp.$mydomain
+{{#MYDESTINATION}}
+mydestination = {{MYDESTINATION}}
+{{/MYDESTINATION}}
 
 # REJECTING MAIL FOR UNKNOWN LOCAL USERS
 #
@@ -631,48 +568,3 @@ debugger_command =
 #	PATH=/bin:/usr/bin:/sbin:/usr/sbin; export PATH; screen
 #	-dmS $process_name gdb $daemon_directory/$process_name
 #	$process_id & sleep 1
-
-# INSTALL-TIME CONFIGURATION INFORMATION
-#
-# The following parameters are used when installing a new Postfix version.
-# 
-# sendmail_path: The full pathname of the Postfix sendmail command.
-# This is the Sendmail-compatible mail posting interface.
-# 
-sendmail_path = /usr/sbin/sendmail
-
-# newaliases_path: The full pathname of the Postfix newaliases command.
-# This is the Sendmail-compatible command to build alias databases.
-#
-newaliases_path = /usr/bin/newaliases
-
-# mailq_path: The full pathname of the Postfix mailq command.  This
-# is the Sendmail-compatible mail queue listing command.
-# 
-mailq_path = /usr/bin/mailq
-
-# setgid_group: The group for mail submission and queue management
-# commands.  This must be a group name with a numerical group ID that
-# is not shared with other accounts, not even with the Postfix account.
-#
-setgid_group = postdrop
-
-# html_directory: The location of the Postfix HTML documentation.
-#
-html_directory = no
-
-# manpage_directory: The location of the Postfix on-line manual pages.
-#
-manpage_directory = /usr/local/man
-
-# sample_directory: The location of the Postfix sample configuration files.
-# This parameter is obsolete as of Postfix 2.1.
-#
-sample_directory = /etc/postfix
-
-# readme_directory: The location of the Postfix README files.
-#
-readme_directory = no
-inet_protocols = ipv4
-meta_directory = /etc/postfix
-shlib_directory = /usr/lib/postfix

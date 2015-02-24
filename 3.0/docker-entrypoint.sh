@@ -1,43 +1,35 @@
 #!/bin/bash
+set -e
+shopt -s globstar nullglob
 
-# function print_help {
-# cat <<EOF
-#         Generic Postfix Setup Script
-# ===============================================
+. /helpers/rsyslog.sh
+link_rsyslog
 
-# to create a new postfix server for your domain
-# you should use the following commands:
+# Set up some default variables
+: ${MYORIGIN:='$mydomain'}
+: ${MYDESTINATION:='$myhostname, localhost.$mydomain, localhost'}
 
-#   docker run -p 25:25 -v /maildirs:/var/mail \
-#          dockerimage/postfix \
-#          yourdomain.com \
-#          user1:password \
-#          user2:password \
-#          userN:password
+# If the hostname is specified and the domain isn't specified, make sure the hostname isn't
+# set to a second level domain (i.e. a hostname "land.fm" would result in a domain of "fm")
+if [ -n "${MYHOSTNAME}" ] && [ -z "${MYDOMAIN}" ]; then
+  if [[ "${MYHOSTNAME}" =~ ^[^.]+\.([^.]+)$ ]]; then
+    cat >&2 <<EOF
+Setting mydomain to \$myhostname because \$myhostname contains only two components
+(${MYHOSTNAME}) which would result in a default mydomain of "${BASH_REMATCH[1]}".
+EOF
+    export MYDOMAIN='$myhostname'
+  fi
+fi
 
-# this creates a new smtp server which listens
-# on port 25, stores mail under /mailsdirs
-# and has serveral user accounts like
-# user1 with password "password" and a mail
-# address user1@yourdomain.com
-# ________________________________________________
-# by MarvAmBass
-# EOF
-# }
+# Append the main.cf template onto the end of main.f
+/usr/local/bin/mo /etc/postfix/main.cf.mo >> /etc/postfix/main.cf
+rm /etc/postfix/main.cf.mo
 
-# if [ "-h" == "$1" ] || [ "--help" == "$1" ] || [ -z $1 ] || [ "" == "$1" ]
-# then
-#   print_help
-#   exit 0
-# fi
+for template in /etc/postfix/**/*.mo; do
+  /usr/local/bin/mo "${template}" > "${template%.mo}"
+  rm "${template}"
+done
 
-# if [ ! -f /etc/default/saslauthd ]
-# then
-#   >&2 echo ">> you're not inside a valid docker container"
-#   exit 1;
-# fi
-
-# echo ">> setting up postfix for: $1"
 
 # # add domain
 # postconf -e myhostname="$1"
