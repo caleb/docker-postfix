@@ -5,6 +5,9 @@ shopt -s globstar nullglob
 . /helpers/rsyslog.sh
 link_rsyslog
 
+. /helpers/links.sh
+read_link OPENDKIM opendkim 8891 tcp
+
 export MAIN_MYORIGIN
 export MAIN_MYDESTINATION
 export MAIN_UNKNOWN_LOCAL_RECIPIENT_REJECT_CODE

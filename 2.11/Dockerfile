@@ -23,17 +23,6 @@ ADD smtpd.conf /etc/postfix/sasl/smtpd.conf
 # Add user postfix to sasl group
 RUN adduser postfix sasl
 
-# dkim settings
-# RUN mkdir -p /etc/postfix/dkim
-# RUN echo "KeyFile                 /etc/postfix/dkim/dkim.key" >> /etc/opendkim.conf
-# RUN echo "Selector                mail" >> /etc/opendkim.conf
-# RUN echo "SOCKET                  inet:8891@localhost" >> /etc/opendkim.conf
-
-# RUN sed -i 's/^SOCKET=/#SOCKET=/g' /etc/default/opendkim
-# RUN echo 'SOCKET="inet:8891@localhost"' >> /etc/default/opendkim
-
-## FINISHED
-
 # Postfix Ports
 EXPOSE 25
 
