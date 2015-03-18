@@ -27,7 +27,12 @@ fi
 
 # Set up some default variables
 : ${MAIN_MYORIGIN:='$mydomain'}
-: ${MAIN_MYDESTINATION:='$myhostname, localhost.$mydomain, localhost'}
+
+# Only use the default mydestination when no value is set (not even NULL (""))
+if [[ ! ${!MAIN_MYDESTINATION[@]} ]]; then
+  export MAIN_MYDESTINATION='$myhostname, localhost.$mydomain, localhost'
+fi
+
 : ${MAIN_UNKNOWN_LOCAL_RECIPIENT_REJECT_CODE:='550'}
 : ${MAIN_MYNETWORKS:='127.0.0.0/8'}
 : ${MAIN_SMTPD_BANNER:='$myhostname ESMTP $mail_name (Debian/GNU)'}
@@ -97,4 +102,84 @@ for var in ${!USER_*}; do
   fi
 done
 
-exec "${@}"
+#
+# Set up the chroot with some files
+#
+cp -p /etc/sasldb2 /var/spool/postfix/etc
+
+# See if the user linked up the rsyslog container and has a socket inside the
+# chroot directory. If so, link that to the dev directory in the chroot directory
+read_link RSYSLOG rsyslog 514 udp
+
+if [ -n "${RSYSLOG_ADDR}" ]; then
+  if [ -n "${RSYSLOG_ENV_SOCKET}" ]; then
+    export RSYSLOG_ENV_SOCKET__DEFAULT__="${RSYSLOG_ENV_SOCKET}"
+  fi
+  for var in ${!RSYSLOG_ENV_SOCKET_*}; do
+    value="${!var}"
+    if [[ "${value}" =~ ^/var/spool/postfix/.*$  ]]; then
+      if [ -S "${value}" ]; then
+        ln -s "${value}" /var/spool/postfix/dev/log
+        break
+      fi
+    fi
+  done
+fi
+
+if [ "${1}" = "postfix" ]; then
+  /etc/init.d/postfix start
+
+  trap "/etc/init.d/postfix stop && exit 0" SIGINT SIGTERM
+  while true; do
+    sleep 10
+  done
+elif [ "${1}" = "test" ]; then
+  /etc/init.d/postfix start > /dev/null >&1
+
+  read -p "To: " to
+  read -p "Seconds to wait for delivery (5): " delay
+
+  if [ -z "${to}" ]; then
+    echo "You must provide a destination address" >&2
+    exit 1
+  elif [[ ! "${to}" =~ ^[^@]+@[^@]+$ ]]; then
+    echo "${to} does not look like a valid email address" >&2
+    exit 1
+  fi
+
+  if [ -z "$delay" ]; then
+    delay=5
+  elif [[ ! "${delay}" =~ ^[[:digit:]]+$ ]]; then
+    echo "Delay must be a number. You provided (${delay})" >&2
+    exit 1
+  fi
+
+  echo
+  /usr/sbin/sendmail "${to}" <<EOF
+Subject: Test Email from Docker!
+From: Docker Postfix <docker@${MAIN_MYDOMAIN}>
+
+Hi,
+
+This is a test email from the postfix container for ${MAIN_MYDOMAIN}
+
+/etc/postfix/main.cf:
+
+$(cat /etc/postfix/main.cf)
+EOF
+
+  /etc/init.d/postfix flush > /dev/null >&2
+
+  echo -n "Sending a test email to ${to}"
+  i=0
+  while [ $i -lt ${delay} ]; do
+    echo -n .
+    i=$(($i+1))
+    sleep 1
+  done
+  echo
+
+  /etc/init.d/postfix stop > /dev/null >&2
+else
+  exec "${@}"
+fi

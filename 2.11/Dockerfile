@@ -31,4 +31,4 @@ ADD docker-entrypoint.sh /entrypoint.sh
 
 # Docker startup
 ENTRYPOINT ["/entrypoint.sh"]
-#CMD ["/usr/libexec/postfix/master"]
+CMD ["postfix"]

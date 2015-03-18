@@ -1,0 +1,31 @@
+rsyslog:
+  image: docker.rodeopartners.com/rsyslog
+  environment:
+    SOCKET: /var/spool/postfix/rsyslog/log
+  volumes:
+    - log:/var/log
+    - /var/spool/postfix/rsyslog
+
+postfix:
+  build: "."
+  environment:
+    MAIN_MYDESTINATION: ""
+    MAIN_MYHOSTNAME: land.fm
+    MAIN_MYDOMAIN: land.fm
+    USER_CALEB: caleb:gnome
+  ports:
+    - "25:25"
+  volumes_from:
+    - rsyslog
+  links:
+    - opendkim
+    - rsyslog
+
+opendkim:
+  image: docker.rodeopartners.com/opendkim
+  volumes_from:
+    - rsyslog
+  volumes:
+    - keys:/keys
+  links:
+    - rsyslog
