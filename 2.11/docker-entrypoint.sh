@@ -2,11 +2,19 @@
 set -e
 shopt -s globstar nullglob
 
-. /helpers/rsyslog.sh
-link_rsyslog
+# . /helpers/rsyslog.sh
+# link_rsyslog
 
 . /helpers/links.sh
 read_link OPENDKIM opendkim 8891 tcp
+read_link RSYSLOG rsyslog 514 udp
+
+# Fill out the monitrc file
+/usr/local/bin/mo /etc/rsyslog.conf.mo > /etc/rsyslog.conf
+rm /etc/rsyslog.conf.mo
+
+# Change the permissions of the monitrc to be to monit's liking
+chmod 600 /etc/monitrc
 
 export MAIN_MYORIGIN
 export MAIN_MYDESTINATION
@@ -102,39 +110,10 @@ for var in ${!USER_*}; do
   fi
 done
 
-#
-# Set up the chroot with some files
-#
-cp -p /etc/sasldb2 /var/spool/postfix/etc
-
-# See if the user linked up the rsyslog container and has a socket inside the
-# chroot directory. If so, link that to the dev directory in the chroot directory
-read_link RSYSLOG rsyslog 514 udp
-
-if [ -n "${RSYSLOG_ADDR}" ]; then
-  if [ -n "${RSYSLOG_ENV_SOCKET}" ]; then
-    export RSYSLOG_ENV_SOCKET__DEFAULT__="${RSYSLOG_ENV_SOCKET}"
-  fi
-  for var in ${!RSYSLOG_ENV_SOCKET_*}; do
-    value="${!var}"
-    if [[ "${value}" =~ ^/var/spool/postfix/.*$  ]]; then
-      if [ -S "${value}" ]; then
-        ln -s "${value}" /var/spool/postfix/dev/log
-        break
-      fi
-    fi
-  done
-fi
-
 if [ "${1}" = "postfix" ]; then
-  /etc/init.d/postfix start
-
-  trap "/etc/init.d/postfix stop && exit 0" SIGINT SIGTERM
-  while true; do
-    sleep 10
-  done
+  exec runsvdir /etc/service
 elif [ "${1}" = "test" ]; then
-  /etc/init.d/postfix start > /dev/null >&1
+  /usr/sbin/postfix start > /dev/null 2>&1
 
   read -p "To: " to
   read -p "Seconds to wait for delivery (5): " delay
@@ -168,7 +147,7 @@ This is a test email from the postfix container for ${MAIN_MYDOMAIN}
 $(cat /etc/postfix/main.cf)
 EOF
 
-  /etc/init.d/postfix flush > /dev/null >&2
+  /usr/sbin/postfix flush > /dev/null 2>&1
 
   echo -n "Sending a test email to ${to}"
   i=0
@@ -179,7 +158,7 @@ EOF
   done
   echo
 
-  /etc/init.d/postfix stop > /dev/null >&2
+  /usr/sbin/postfix stop > /dev/null 2>&1
 else
   exec "${@}"
 fi

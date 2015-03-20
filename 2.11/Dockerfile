@@ -15,7 +15,20 @@ RUN mkdir -p /helpers \
 RUN echo "postfix postfix/main_mailer_type string No configuration" | debconf-set-selections
 
 # Install some dependencies
-RUN apt-get update && apt-get install -y postfix postfix-pcre sasl2-bin mailutils
+RUN apt-get update && apt-get install -y postfix postfix-pcre sasl2-bin mailutils monit rsyslog runit
+
+# Run postfix non-chrooted
+ADD master.cf /etc/postfix/master.cf
+RUN chmod go-wx /etc/postfix/master.cf
+
+# Add the Monit configuration
+ADD monit/monitrc /etc/monitrc
+
+# Add the runit configuration
+ADD sv /etc/service
+
+# Add the rsyslog configuration file (this just forwards to our external rsyslog instance)
+ADD rsyslog.conf.mo /etc/rsyslog.conf.mo
 
 # Add the sasl configuration for smtpd
 ADD smtpd.conf /etc/postfix/sasl/smtpd.conf
