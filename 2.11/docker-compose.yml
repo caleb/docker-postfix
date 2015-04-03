@@ -16,8 +16,6 @@ postfix:
 
 opendkim:
   image: docker.rodeopartners.com/opendkim
-  volumes_from:
-    - rsyslog
   volumes:
     - keys:/keys
   links:

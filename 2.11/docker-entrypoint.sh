@@ -2,16 +2,9 @@
 set -e
 shopt -s globstar nullglob
 
-# . /helpers/rsyslog.sh
-# link_rsyslog
-
 . /helpers/links.sh
 read_link OPENDKIM opendkim 8891 tcp
 read_link RSYSLOG rsyslog 514 udp
-
-# Fill out the monitrc file
-/usr/local/bin/mo /etc/rsyslog.conf.mo > /etc/rsyslog.conf
-rm /etc/rsyslog.conf.mo
 
 # Change the permissions of the monitrc to be to monit's liking
 chmod 600 /etc/monitrc
