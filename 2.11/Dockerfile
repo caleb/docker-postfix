@@ -1,24 +1,25 @@
 FROM debian:jessie
 MAINTAINER Caleb Land <caleb@land.fm>
 
-ADD https://github.com/caleb/docker-helpers/archive/master.tar.gz /tmp/helpers.tar.gz
-ADD https://github.com/caleb/syslog_forwarder/releases/download/1.0/syslog_forwarder-linux-amd64-v1.0.tar.gz /tmp/syslog_forwarder.tar.gz
-ADD https://raw.githubusercontent.com/caleb/mo/master/mo /usr/local/bin/mo
+ENV DOCKER_HELPERS_VERSION=1.0
 
-# Install helpers
+# Download our docker helpers
+ADD https://github.com/caleb/docker-helpers/releases/download/v${DOCKER_HELPERS_VERSION}/helpers-v${DOCKER_HELPERS_VERSION}.tar.gz /tmp/helpers.tar.gz
+
+# Install the docker helpers
 RUN mkdir -p /helpers \
-&&  tar xzf /tmp/helpers.tar.gz -C / docker-helpers-master/helpers \
-&&  mv /docker-helpers-master/helpers/* /helpers \
-&&  rm -rf /docker-helpers-master \
-&&  rm /tmp/helpers.tar.gz \
-&&  chmod +x /usr/local/bin/mo \
-&&  tar xzf /tmp/syslog_forwarder.tar.gz -C /usr/local/bin \
-&&  rm /tmp/syslog_forwarder.tar.gz
+&&  tar xzf /tmp/helpers.tar.gz -C / \
+&&  rm /tmp/helpers.tar.gz
+
+# Install the base system
+RUN /bin/bash /helpers/install-base.sh
 
 RUN echo "postfix postfix/main_mailer_type string No configuration" | debconf-set-selections
 
-# Install some dependencies
-RUN apt-get update && apt-get install -y postfix postfix-pcre sasl2-bin mailutils monit runit
+# Install some software
+RUN apt-get update \
+&&  apt-get install -y postfix postfix-pcre sasl2-bin mailutils \
+&&  rm -rf /var/lib/apt/lists/*
 
 # Run postfix non-chrooted
 ADD master.cf /etc/postfix/master.cf
