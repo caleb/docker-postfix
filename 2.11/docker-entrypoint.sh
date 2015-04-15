@@ -3,8 +3,8 @@ set -e
 shopt -s globstar nullglob
 
 . /helpers/links.sh
-read_link OPENDKIM opendkim 8891 tcp
-read_link RSYSLOG rsyslog 514 udp
+read-link OPENDKIM opendkim 8891 tcp
+read-link RSYSLOG rsyslog 514 udp
 
 # Change the permissions of the monitrc to be to monit's liking
 chmod 600 /etc/monitrc
