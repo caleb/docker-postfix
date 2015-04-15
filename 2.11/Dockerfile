@@ -12,7 +12,7 @@ RUN mkdir -p /helpers \
 &&  rm /tmp/helpers.tar.gz
 
 # Install the base system
-RUN /bin/bash /helpers/install_base.sh
+RUN /bin/bash /helpers/install-base.sh
 
 RUN echo "postfix postfix/main_mailer_type string No configuration" | debconf-set-selections
 
