@@ -3,4 +3,4 @@
 cd 2.11
 ./push.sh
 cd ..
-docker push docker.rodeopartners.com/postfix:latest
+docker push caleb/postfix:latest

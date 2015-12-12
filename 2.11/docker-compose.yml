@@ -1,5 +1,5 @@
 rsyslog:
-  image: docker.rodeopartners.com/rsyslog
+  image: caleb/rsyslog
   volumes:
     - log:/var/log
 
@@ -15,7 +15,7 @@ postfix:
     - rsyslog
 
 opendkim:
-  image: docker.rodeopartners.com/opendkim
+  image: caleb/opendkim
   volumes:
     - keys:/keys
   links:

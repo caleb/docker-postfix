@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-docker push docker.rodeopartners.com/postfix:2.11
-docker push docker.rodeopartners.com/postfix:2.11-jessie
+docker push caleb/postfix:2.11
+docker push caleb/postfix:2.11-jessie
