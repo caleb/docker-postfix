@@ -1,7 +1,7 @@
 FROM debian:jessie
 MAINTAINER Caleb Land <caleb@land.fm>
 
-ENV DOCKER_HELPERS_VERSION=1.0
+ENV DOCKER_HELPERS_VERSION=2.0
 
 # Download our docker helpers
 ADD https://github.com/caleb/docker-helpers/releases/download/v${DOCKER_HELPERS_VERSION}/helpers-v${DOCKER_HELPERS_VERSION}.tar.gz /tmp/helpers.tar.gz
@@ -19,6 +19,7 @@ RUN echo "postfix postfix/main_mailer_type string No configuration" | debconf-se
 # Install some software
 RUN apt-get update \
 &&  apt-get install -y postfix postfix-pcre sasl2-bin mailutils \
+&&  apt-get install -y rsyslog \
 &&  rm -rf /var/lib/apt/lists/*
 
 # Run postfix non-chrooted
@@ -28,8 +29,8 @@ RUN chmod go-wx /etc/postfix/master.cf
 # Add the Monit configuration
 ADD monit/monitrc /etc/monitrc
 
-# Add the runit configuration
-ADD sv /etc/service
+# Add the rsyslog configuration to forward logs to the main rsyslog instance
+ADD rsyslog/rsyslog.conf.mo /etc/rsyslog.conf.mo
 
 # Add the sasl configuration for smtpd
 ADD smtpd.conf /etc/postfix/sasl/smtpd.conf

@@ -4,7 +4,7 @@ shopt -s globstar nullglob
 
 . /helpers/links.sh
 read-link OPENDKIM opendkim 8891 tcp
-read-link RSYSLOG rsyslog 514 udp
+read-link RSYSLOG rsyslog 514 tcp
 
 # Change the permissions of the monitrc to be to monit's liking
 chmod 600 /etc/monitrc
@@ -84,6 +84,10 @@ for template in /etc/postfix/**/*.mo; do
   rm "${template}"
 done
 
+# Set up rsyslog
+/usr/local/bin/mo /etc/rsyslog.conf.mo > /etc/rsyslog.conf
+rm /etc/rsyslog.conf.mo
+
 #
 # Add users
 #
@@ -104,7 +108,7 @@ for var in ${!USER_*}; do
 done
 
 if [ "${1}" = "postfix" ]; then
-  exec runsvdir /etc/service
+  exec /usr/bin/monit -I
 elif [ "${1}" = "test" ]; then
   /usr/sbin/postfix start > /dev/null 2>&1
 

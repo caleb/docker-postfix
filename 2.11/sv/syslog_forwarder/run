@@ -1,4 +1,0 @@
-#!/bin/sh
-
-exec 2>&1
-exec /usr/local/bin/syslog_forwarder -s /dev/log -d $RSYSLOG_ADDR:$RSYSLOG_PORT
