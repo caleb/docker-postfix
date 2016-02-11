@@ -85,8 +85,10 @@ for template in /etc/postfix/**/*.mo; do
 done
 
 # Set up rsyslog
-/usr/local/bin/mo /etc/rsyslog.conf.mo > /etc/rsyslog.conf
-rm /etc/rsyslog.conf.mo
+if [ -f /etc/rsyslog.conf.mo ]; then
+  /usr/local/bin/mo /etc/rsyslog.conf.mo > /etc/rsyslog.conf
+  rm /etc/rsyslog.conf.mo
+fi
 
 #
 # Add users
